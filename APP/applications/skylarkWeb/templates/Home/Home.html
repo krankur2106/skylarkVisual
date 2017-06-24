@@ -1,0 +1,83 @@
+<div class="container">
+	<header class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+		<img class="pull-left" src="/images/drone.png" height='60'>
+		<h1 class="col-lg-10 col-md-10 col-sm-9 col-xs-9 logo">Skylark Visuals</h1>
+		<button type="button" class="btn btn-default logout col-lg-1 col-md-1 col-sm-3 col-xs-3" ng-click="userLogout()">Logout</button>
+	</header>
+	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+		<div id="menuBox" class="row col-lg-2 col-md-4 col-sm-12 col-xs-12 noPad">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 menuoption" ng-click="selectedMenuItem('item0')">Show All Assets</div>
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 menuoption" ng-click="selectedMenuItem('item1')">Add Asset to Map
+				<div ng-show="menuList['item1']['display']" class="col-lg-12 col-md-12 col-sm-12 col-xs-12" ng-click="addMarker()">
+					Asset Name: <br><input placeholder="Enter Asset Name" ng-model="addMarker.marker_name" required>
+					Tank Category:<br><select class="col-lg-12" ng-model="addMarker.selected_type" ng-options="tankType[4] as tankType[0] for tankType in assetDetail "></select>
+					<span class="col-lg-12 info-text">Click On map to Add Asset:</span>
+					<input class="col-lg-12 info-text" placeholder="Latitue-Longitude" ng-model="addMarker.lat_lng" readonly>
+					<button type="button" class="btn btn-md col-lg-12 buttonClass" ng-click="addAsset(addMarker.marker_name,addMarker.selected_type,addMarker.lat_lng)">Add</button>
+				</div>
+			</div>
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 menuoption" ng-click="selectedMenuItem('item2')">Remove Asset from Map
+				<div ng-show="menuList['item2']['display']" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					Select Asset to Remove: <select class="col-lg-12" ng-model="removeMarker" ng-options="marker.asset_deployment_id as marker.asset_name for marker in markers "></select>
+					<button type="button" class="btn btn-md col-lg-12 buttonClass" ng-click="removeAsset(removeMarker,'Asset')">Remove</button>
+				</div>
+			</div>
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 menuoption" ng-click="selectedMenuItem('item3')">Create Fence to Map
+				<div ng-show="menuList['item3']['display']" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					<span class="col-lg-12 noPad info-text">Click On icon to draw fence:</span>
+					fence Name: <br><input placeholder="Enter Fence Name" ng-model="fence_name" required>
+					Freehand Fence: <i class="fa fa-pencil fa-2x" aria-hidden="true" ng-click="drawFence()"></i>
+					Polygon Fence: <i class="fa fa-pencil-square-o fa-2x" aria-hidden="true" ng-click="drawPolygon()"></i>
+					<button type="button" class="btn btn-md col-lg-12 buttonClass" ng-click="addFence(fence_name)">Add Fence</button>
+				</div>
+			</div>
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 menuoption" ng-click="selectedMenuItem('item4')">Remove Fence
+				<div ng-show="menuList['item4']['display']" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					Select Fence to Remove: <select class="col-lg-12" ng-model="removefence" ng-options="fence.id as fence.geofence_name for fence in fences "></select>
+					<button type="button" class="btn btn-md col-lg-12 buttonClass" ng-click="removeAsset(removefence,'Fence')">Remove</button>
+				</div>
+			</div>
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 menuoption" ng-click="selectedMenuItem('item5')">Add Asset to Fence
+				<div ng-show="menuList['item5']['display']" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					Asset Name: <select class="col-lg-12" ng-model="assetId" ng-options="marker.asset_deployment_id as marker.asset_name for marker in markers "></select>
+					Fence Name: <select class="col-lg-12" ng-model="fenceId" ng-options="fence.id as fence.geofence_name for fence in fences "></select>
+					<button type="button" class="btn btn-md col-lg-12 buttonClass" ng-click="addAssetFence(assetId,fenceId)">Add Asset To fence</button>
+				</div>
+			</div>
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 menuoption" ng-click="selectedMenuItem('item6')">Remove Asset from Fence
+				<div ng-show="menuList['item6']['display']" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					Fence Name: <select class="col-lg-12" ng-model="fenceId" ng-options="fence.id as fence.geofence_name for fence in fences "></select>
+					<button type="button" class="btn btn-md col-lg-12 buttonClass" ng-click="removeAssetFence(fenceId)">Remove Asset</button>
+				</div>
+			</div>
+		</div>
+		<div class="row col-lg-10 col-md-8 col-sm-12 col-xs-12 noPad pull-right">
+			<div class="col-lg-3 col-md-3 col-sm-6 col-xs-12 noPad" ng-repeat="tankType in assetDetail">
+				<div class="assetCategoryBox col-lg-12" ng-click="getMarkers(tankType[4])">
+					<div class="assetCategoryImg col-lg-4"><img src="{{tankType[3]}}" height='50' width="70"></div>
+						<span class="col-lg-8">{{tankType[0]}}</span>
+						<span class="col-lg-8 categoryText">{{tankType[5]}}</span>
+				</div>
+			</div>
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 mapContainer noPad">
+				<ng-map zoom="2" style="height:100%;width:100%" center="[20.5937,78.9629]" zoom-to-include-markers="auto">
+					<shape ng-repeat="fence in fences" name="polygon" stroke-color="#f37062" stroke-opacity="1" paths="{{fence.geofence_lat_long}}" fill-color="rgba( 181, 181, 181, 0.20)" stroke-weight="2" ></shape>
+					<marker  id='{{val.asset_name}}' ng-repeat="(key,val) in markers" optimized="false" position="{{val.lat_long}}" icon="{{val.icon}}" on-click="showInfo(val)"></marker>
+					<info-window id="assetDetailWindow">
+						<div ng-non-bindable="">
+						<img ng-src="{{markerDetail.image}}"/ style="width:150px;"><br>
+						<span href="javascript:void">Asset Name: {{ markerDetail.asset_name}}</span><br>
+						<span href="javascript:void">Asset Category: {{ markerDetail.asset_type}}</span><br>
+						<span href="javascript:void">Asset Location: {{ markerDetail.lat_long}}</span><br>
+						<span href="javascript:void">fence_name: {{ markerDetail.geofence_name == null ? 'No Fence Defined' : markerDetail.geofence_name }}</span>
+						</div>
+					</info-window>
+				</ng-map>
+			</div>
+		</div>
+	</div>
+	<div ng-if="displayAlertBox" id="alertBox">
+		<span ng-bind="alertMessage"></span>
+	</div>
+	<footer>Copyright &copy; Skylark Drones</footer>
+</div>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="/skylarkWebAssets/static/css/bootstrap/bootstrap.min.css"/>
+<script type="text/javascript" src="/skylarkWebAssets/static/js/angular/angular.min.js"></script>
+<link rel="stylesheet" href="/skylarkWebAssets/static/css/fontawesome/font-awesome.min.css">
+</head>
+	<body class="main col-lg-12" ng-app="myApp" ng-controller="myCtrl">	
+			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12" id="left">
+				<!-- <img class=" logo" src="/images/Stewart&Stevenson.png" alt="" /> -->
+			</div>
+			<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12 card card-container" id="right">
+				
+				<!-- <img id="profile-img" class="profile-img-card" src="//ssl.gstatic.com/accounts/ui/avatar_2x.png" /> -->
+				<p id="profile-name" class="profile-name-card"></p>
+					<h2 style="color: rgba(212, 215, 218, 0.77);" class="text-left">Login</h2>
+				<form name="frmv" class="col-lg-9 col-md-11 col-sm-11 col-xs-12 form-signin" autocomplete="off" novalidate>
+					<span id="reauth-email" class="reauth-email"></span>
+					<!-- Username -->
+					<div class="input-group">
+					  <span class="input-group-addon" id="basic-addon1"><i class="fa fa-user" aria-hidden="true"></i></span>
+					  <input type="text" class="email" ng-model="username" name="email" type="text" id="inputUsername" class="form-control"  placeholder="Email" aria-describedby="basic-addon1" ng-pattern="emailFormat" required>
+					</div>
+					<!-- Password -->
+					<div class="input-group marginTop">
+					  <span class="input-group-addon" id="basic-addon1"><i class="fa fa-unlock-alt" aria-hidden="true"></i></span>
+					  <input class="password" ng-model="userPassword" name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" aria-describedby="basic-addon1" required>
+					</div>
+					<!-- Sign in Button -->
+					<button ng-click="checkAuth()" class="btn btn-lg btn-primary btn-block btn-signin marginTop" type="submit">Sign in</button>
+					<!-- Remember me -->
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 marginTop" style="padding: 0 0;">
+						<span style="float:left;">
+							<input type="checkbox" name="remember" data-ng-click="rememberMe()" data-ng-model="remember" style="color:#fff;">
+							<span style="color: rgba(212, 215, 218, 0.77);"> Remember me </span>
+						</span>
+					</div>
+					<!-- Validation -->
+					<div ng-cloak class="col-lg-12 validation marginTop">						
+						<span class="col-lg-12 errmsg" ng-show="frmv.email.$error.required && frmv.password.$error.required && ((frmv.email.$dirty && frmv.password.$dirty) || submitted)">Username & Password are required</span>
+						<span class="col-lg-12 errmsg"  ng-hide="frmv.email.$error.required && frmv.password.$error.required && ((frmv.email.$dirty && frmv.password.$dirty) || submitted)">
+							<span class="col-lg-12 errmsg" ng-show="frmv.email.$error.required && (frmv.email.$dirty || submitted) && (!frmv.password.$pristine || (frmv.password.dirty && !frmv.password.length))">Username is required</span>
+							<span class="col-lg-12 errmsg" ng-show="frmv.password.$error.required && (frmv.password.$dirty || submitted) && !frmv.email.$pristine || frmv.email.dirty">Password is required</span>
+						</span>
+						<div ng-show="errorMessage" class="errmsg">Invalid Credentials !</div>
+						<span class="col-lg-12 errmsg" ng-show="frmv.email.$error.pattern">
+						Not a valid email !
+						</span>
+					</div>
+				</form>
+				
+			</div>	
+	</body>
+	<footer class="footer navbar-fixed-bottom">
+			<div class="col-md-6 pull-left"><i class="fa fa-copyright pull-left" aria-hidden="true"></i><a class="pull-left" target="_blank" href="http://www.google.com/"> Copyright 2016</a></div>
+			<div class="col-md-6 pull-right"><a class="pull-right" target="_blank" href="https://www.google.com/">Powered by skylark</a></div>
+	</footer>
+
+<script>
+
+var app = angular.module('myApp', []);
+
+app.factory('$remember', function() {
+            function fetchValue(name) {
+                var gCookieVal = document.cookie.split("; ");
+                for (var i=0; i < gCookieVal.length; i++)
+                {
+                    // a name/value pair (a crumb) is separated by an equal sign
+                    var gCrumb = gCookieVal[i].split("=");
+                    if (name === gCrumb[0])
+                    {
+                        var value = '';
+                        try {
+                            value = angular.fromJson(gCrumb[1]);
+                        } catch(e) {
+                            value = unescape(gCrumb[1]);
+                        }
+                        return value;
+                    }
+                }
+                // a cookie with the requested name does not exist
+                return null;
+            }
+            return function(name, values) {
+                if(arguments.length === 1) return fetchValue(name);
+                var cookie = name + '=';
+                if(typeof values === 'object') {
+                    var expires = '';
+                    cookie += (typeof values.value === 'object') ? angular.toJson(values.value) + ';' : values.value + ';';
+                    if(values.expires) {
+                        var date = new Date();
+                        date.setTime( date.getTime() + (values.expires * 24 *60 * 60 * 1000));
+                        expires = date.toGMTString();
+                    }
+                    cookie += (!values.session) ? 'expires=' + expires + ';' : '';
+                    cookie += (values.path) ? 'path=' + values.path + ';' : '';
+                    cookie += (values.secure) ? 'secure;' : '';
+                } else {
+                    cookie += values + ';';
+                }
+                document.cookie = cookie;
+            }
+        });
+
+app.controller('myCtrl', function($scope,$http,$remember) {
+	
+	$scope.emailFormat = /^[a-z]+[a-z0-9._]+@[a-z]+\.[a-z.]{2,5}$/;
+	var loginurl='/login/validateUser';
+	$scope.errorMessage=false;
+	$scope.remember = false;
+	if ($remember('username') && $remember('userPassword') ) {
+		$scope.remember = true;
+		$scope.username = $remember('username');
+		$scope.userPassword = $remember('userPassword');
+	}
+	$scope.rememberMe = function() {
+		if ($scope.remember) {
+			$remember('username', $scope.username);
+			$remember('userPassword', $scope.userPassword);
+		} else {
+			$remember('username', '');
+			$remember('userPassword', '');
+		}
+	};
+    $scope.checkAuth = function() {
+		$scope.submitted = true;
+		creds={
+			username:$scope.username,
+			password:$scope.userPassword
+		};
+		if($scope.username && $scope.userPassword)
+		{
+			$http({
+				  method: 'POST',
+				  url: loginurl,
+				  data: creds
+				})
+				.then(function successCallback(response) {
+					if(response.data.status==1){
+					$scope.errorMessage=false;
+					window.open('/skylarkWeb/#/Home', '_self');
+					}
+					else{
+						$scope.errorMessage=true;
+					}
+				}, function errorCallback(response) {
+					 console.log("Login server error");
+				  });
+		}
+    }
+});
+
+</script>
+<style>
+body, html {
+height: 100%;
+background-repeat: no-repeat;
+background-color:#293846;
+clear: both;
+}
+*:focus {
+    outline: none;
+}
+#left { 
+	position: relative;
+	left: 0; 
+	top: 0;
+	height:100%;
+}
+
+#right {
+	position: absolute;
+	right: 0;
+	top: 2em;
+	margin: 9em 2em;
+}
+.card .text-left{
+	margin: 0 0.5em;
+}
+.card{
+	border-left: 1px solid rgba(212, 215, 218, 0.36);
+}
+.btn {
+    font-weight: 700;
+    height: 36px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+.profile-img-card {
+	position: absolute;
+    top: 225px;
+    left: 225px;
+    -moz-border-radius: 50%;
+    -webkit-border-radius: 50%;
+}
+
+.profile-name-card {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0 0;
+    min-height: 1em;
+}
+
+.reauth-email {
+    display: block;
+    color: #404040;
+    line-height: 2;
+    margin-bottom: 10px;
+    font-size: 14px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.form-signin{
+    margin: 0 auto;
+}
+.form-signin #inputUsername,
+.form-signin #inputPassword {
+	padding-left: 0.5em;
+    height: 44px;
+    font-size: 16px;
+	color: white;
+	background-color: #3c4a57;
+	border-top-right-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-style: solid;
+    border-color: #ccc;
+}
+input[type="checkbox" i] {
+	margin: 0 0 0 0;
+}
+
+.form-signin input[type=email],
+.form-signin input[type=password],
+.form-signin input[type=text],
+.form-signin button {
+    width: 100%;
+    display: block;
+    z-index: 1;
+    position: relative;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.form-signin .form-control:focus {
+    border-color: rgb(104, 145, 162);
+    outline: 0;
+}
+.btn {
+    font-weight: 700;
+    height: 36px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+.btn.btn-signin {
+    background-color: rgba(255,255,255,0.8);
+    padding: 0px;
+    font-weight: 700;
+    font-size: 14px;
+    height: 36px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    border: none;
+    -o-transition: all 0.218s;
+    -moz-transition: all 0.218s;
+    -webkit-transition: all 0.218s;
+    transition: all 0.218s;
+	color:#293846;
+}
+
+.btn.btn-signin:hover,
+.btn.btn-signin:active,
+.btn.btn-signin:focus {
+    background-color: white;
+	cursor:pointer;
+}
+
+.forgot-password {
+    color: rgb(104, 145, 162);
+	text-decoration: none;
+	text-align:center;
+}
+
+.forgot-password:hover,
+.forgot-password:active,
+.forgot-password:focus{
+    color: grey;
+}
+.loginBox
+{
+	position:absolute;
+	top: 99px;
+    right: 367px;
+}
+.container{
+	background:#293846;
+}
+.imgclass
+{
+	margin-top: 18%;
+	padding: 0 10em;
+}
+.errmsg
+{
+	color: #f16a1e;
+	display: block;
+}
+.logo{
+
+	display: block;
+	margin-top: 15em;
+    float:right;
+	margin-right: 2em;
+}
+.marginTop{
+	margin-top: 1em;
+}
+.input-group-addon{
+	background-color: rgba(255, 255, 255, 0.09);
+	color: #d4d7da;
+	border: 2px solid #ccc;
+}
+.footer{    
+	border: 0;
+    padding: 0;
+	position: fixed;
+    bottom: 0;
+    width: 100%;
+	height: 1em;
+	background: #d4d7da;
+}
+.footer *{
+    border: 0;
+    color: #293846;
+    font-size: 1rem;
+}
+ @media only screen 
+    and (min-device-width : 768px) 
+    and (max-device-width : 1024px) {
+	.logo{
+		display: block;
+		margin-top: 15em;
+		margin-left: 7em !important;
+	}
+}
+
+
+@media (max-width: 767px) {
+
+    .logo{
+	
+		display: block;
+		margin-top: 1em;
+		margin-right: auto;
+		margin-left: auto;
+		float: none;
+	}
+	.card .text-left{
+		text-align: center;
+		font-size: 26px;
+	}
+	#right{
+		margin: 9em 0em;
+	}
+
+}
+@media (max-width: 767px) and (min-width: 321px) {
+
+	.card{
+		top: 4em !important;
+	}
+	#right{
+		margin: 9em 0em;
+		border-left:0 !important;
+
+	}
+}
+input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px #3c4a57 inset !important;
+	-webkit-text-fill-color: #fff !important;
+	
+}
+
+.validation{
+	text-align: center;
+}
+
+</style>
+</html>
